@@ -22,6 +22,13 @@ Perfect 👏 Since you’ve got your extension now working end-to-end parsing PD
 
 ---
 
+### Demo 
+
+!(Screenshot 2025-11-11 222005.png)
+!(Screenshot 2025-11-11 222014.png)
+
+---
+
 ### 📂 Project Structure
 
 ```
