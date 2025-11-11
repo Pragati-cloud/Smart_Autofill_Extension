@@ -24,8 +24,8 @@ Perfect 👏 Since you’ve got your extension now working end-to-end parsing PD
 
 ### Demo 
 
-!(Screenshot 2025-11-11 222005.png)
-!(Screenshot 2025-11-11 222014.png)
+![Smart Autofill Extension Screenshot](https://github.com/Pragati-cloud/Smart_Autofill_Extension/blob/main/Screenshot%202025-11-11%20222005.png)
+![Smart Autofill Extension Screenshot](https://github.com/Pragati-cloud/Smart_Autofill_Extension/blob/main/Screenshot%202025-11-11%20222014.png)
 
 ---
 
