@@ -1,0 +1,444 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Smart Autofill</title>
+    <link rel="stylesheet" href="popup.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        width: 360px;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #1f2937;
+      }
+
+      .container {
+        background: white;
+        padding: 24px 20px;
+        border-radius: 16px;
+        margin: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      h3 {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 20px;
+        letter-spacing: -0.5px;
+      }
+
+      input[type="text"],
+      input[type="email"] {
+        width: 100%;
+        padding: 14px 16px;
+        margin: 6px 0;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+        font-family: inherit;
+      }
+
+      input[type="text"]:focus,
+      input[type="email"]:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+      }
+
+      input[type="text"]::placeholder,
+      input[type="email"]::placeholder {
+        color: #9ca3af;
+      }
+
+      input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: 2px dashed #d1d5db;
+        border-radius: 10px;
+        font-size: 14px;
+        cursor: pointer;
+        background: #f9fafb;
+        transition: all 0.3s ease;
+      }
+
+      input[type="file"]:hover {
+        border-color: #667eea;
+        background: #f3f4ff;
+      }
+
+      button {
+        margin-top: 10px;
+        padding: 13px 16px;
+        border: none;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        cursor: pointer;
+        width: 100%;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        font-family: inherit;
+        position: relative;
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      #addField {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        margin-top: 16px;
+      }
+
+      #addField:hover {
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      }
+
+      #saveData {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        margin-top: 8px;
+      }
+
+      #saveData:hover {
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+      }
+
+      #autofill {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        font-size: 15px;
+        padding: 14px 16px;
+      }
+
+      #autofill:hover:not(:disabled) {
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+      }
+
+      #statusBox {
+        margin-top: 12px;
+        font-size: 13px;
+        color: #059669;
+        background: #d1fae5;
+        padding: 10px 14px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 500;
+        display: none;
+        animation: slideIn 0.3s ease;
+      }
+
+      #statusBox.show {
+        display: block;
+      }
+
+      #statusBox.error {
+        color: #dc2626;
+        background: #fee2e2;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .custom-field {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+        align-items: stretch;
+      }
+
+      .custom-field input {
+        flex: 1;
+        margin: 0;
+      }
+
+      .remove {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0 10px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        min-width: 38px;
+        flex-shrink: 0;
+      }
+
+      .remove:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+      }
+
+      #customFields {
+        margin-top: 8px;
+      }
+
+      .divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+        margin: 16px 0;
+      }
+
+      .field-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        margin-top: 8px;
+        display: block;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 8px;
+        vertical-align: middle;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h3>✨ Smart Autofill</h3>
+
+      <span class="field-label">Name</span>
+      <input type="text" id="name" placeholder="John Doe" />
+      
+      <span class="field-label">Email</span>
+      <input type="email" id="email" placeholder="john@example.com" />
+      
+      <span class="field-label">Phone</span>
+      <input type="text" id="phone" placeholder="+1 234 567 8900" />
+      
+      <span class="field-label">Company</span>
+      <input type="text" id="company" placeholder="Acme Inc." />
+      
+      <span class="field-label">Role</span>
+      <input type="text" id="role" placeholder="Software Engineer" />
+
+      <div id="customFields"></div>
+
+      <button id="addField">➕ Add Custom Field</button>
+      <button id="saveData">💾 Save All Data</button>
+
+      <div class="divider"></div>
+
+      <span class="field-label">Resume (PDF)</span>
+      <input type="file" id="pdfUpload" accept=".pdf" />
+      
+      <button id="autofill">
+        <span class="button-content">
+          <span id="buttonText">🚀 Analyze AI & Done</span>
+        </span>
+      </button>
+      <div id="statusBox"></div>
+    </div>
+
+    <script src="popup.js"></script>
+    <script>
+      // Load saved data on page load
+      window.addEventListener('DOMContentLoaded', () => {
+        loadSavedData();
+      });
+
+      // Load saved data from localStorage
+      function loadSavedData() {
+        const savedData = localStorage.getItem('smartAutofillData');
+        if (savedData) {
+          try {
+            const data = JSON.parse(savedData);
+            
+            if (data.name) document.getElementById('name').value = data.name;
+            if (data.email) document.getElementById('email').value = data.email;
+            if (data.phone) document.getElementById('phone').value = data.phone;
+            if (data.company) document.getElementById('company').value = data.company;
+            if (data.role) document.getElementById('role').value = data.role;
+            
+            if (data.customFields && data.customFields.length > 0) {
+              const customFieldsContainer = document.getElementById('customFields');
+              data.customFields.forEach(field => {
+                addCustomFieldWithValues(field.name, field.value);
+              });
+            }
+          } catch (e) {
+            console.error('Error loading saved data:', e);
+          }
+        }
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function addCustomFieldWithValues(name = '', value = '') {
+        const customFields = document.getElementById('customFields');
+        const fieldDiv = document.createElement('div');
+        fieldDiv.className = 'custom-field';
+        
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.placeholder = 'Field Name';
+        nameInput.className = 'field-name';
+        nameInput.value = name;
+        
+        const valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.placeholder = 'Field Value';
+        valueInput.className = 'field-value';
+        valueInput.value = value;
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove';
+        removeBtn.textContent = '×';
+        removeBtn.onclick = () => fieldDiv.remove();
+        
+        fieldDiv.appendChild(nameInput);
+        fieldDiv.appendChild(valueInput);
+        fieldDiv.appendChild(removeBtn);
+        customFields.appendChild(fieldDiv);
+      }
+
+      function saveData() {
+        const data = {
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          phone: document.getElementById('phone').value,
+          company: document.getElementById('company').value,
+          role: document.getElementById('role').value,
+          customFields: []
+        };
+
+        const customFieldDivs = document.querySelectorAll('.custom-field');
+        customFieldDivs.forEach(div => {
+          const name = div.querySelector('.field-name').value;
+          const value = div.querySelector('.field-value').value;
+          if (name || value) {
+            data.customFields.push({ name, value });
+          }
+        });
+
+        localStorage.setItem('smartAutofillData', JSON.stringify(data));
+        showStatus('✓ Data saved successfully!', false);
+      }
+
+      function showStatus(message, isError = false) {
+        const statusBox = document.getElementById('statusBox');
+        statusBox.textContent = message;
+        statusBox.classList.remove('error');
+        if (isError) {
+          statusBox.classList.add('error');
+        }
+        statusBox.classList.add('show');
+        
+        setTimeout(() => {
+          statusBox.classList.remove('show');
+        }, 3000);
+      }
+
+      function setLoading(isLoading) {
+        const autofillBtn = document.getElementById('autofill');
+        const buttonText = document.getElementById('buttonText');
+        
+        if (isLoading) {
+          autofillBtn.disabled = true;
+          buttonText.innerHTML = '<span class="spinner"></span>Analyzing with AI...';
+        } else {
+          autofillBtn.disabled = false;
+          buttonText.textContent = '🚀 Analyze AI & Done';
+        }
+      }
+
+      document.getElementById('addField').addEventListener('click', () => {
+        addCustomFieldWithValues();
+      });
+
+      document.getElementById('saveData').addEventListener('click', saveData);
+
+      document.getElementById('autofill').addEventListener('click', async () => {
+        setLoading(true);
+        
+        // Simulate AI processing
+        try {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          showStatus('✓ Form filled successfully!', false);
+        } catch (error) {
+          showStatus('✗ Error during analysis', true);
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      const fileInput = document.getElementById('pdfUpload');
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          if (file.type === 'application/pdf') {
+            showStatus(`✓ ${file.name} uploaded`, false);
+          } else {
+            showStatus('✗ Please upload a PDF file', true);
+            fileInput.value = '';
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
